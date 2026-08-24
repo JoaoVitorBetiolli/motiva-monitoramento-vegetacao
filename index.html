@@ -43,7 +43,7 @@
         <div class="timestamp" id="timestamp"></div>
 
         <label id="upload-label" for="imageInput">
-          <span id="upload-text">📡 Simular nova captura</span>
+          <span id="upload-text"> Simular nova captura</span>
         </label>
         <input type="file" id="imageInput" accept="image/*">
 
@@ -55,20 +55,24 @@
       <section class="analytics">
         <h2>Painel analítico</h2>
 
-        <div class="stats-row">
-          <div class="stat-card">
-            <span class="stat-number" id="statTotal">0</span>
-            <span class="stat-label">Análises</span>
-          </div>
-          <div class="stat-card sim">
-            <span class="stat-number" id="statCorte">0</span>
-            <span class="stat-label">Precisam corte</span>
-          </div>
-          <div class="stat-card nao">
-            <span class="stat-number" id="statSemCorte">0</span>
-            <span class="stat-label">Sem necessidade</span>
-          </div>
+              <div class="stats-row">
+        <div class="stat-card">
+          <span class="stat-number" id="statTotal">0</span>
+          <span class="stat-label">Análises</span>
         </div>
+        <div class="stat-card sim">
+          <span class="stat-number" id="statCorte">0</span>
+          <span class="stat-label">Corte urgente</span>
+        </div>
+        <div class="stat-card atencao">
+          <span class="stat-number" id="statAtencao">0</span>
+          <span class="stat-label">Em atenção</span>
+        </div>
+        <div class="stat-card nao">
+          <span class="stat-number" id="statSemCorte">0</span>
+          <span class="stat-label">Sem risco</span>
+        </div>
+      </div>
 
         <div class="chart-row" id="chartRow">
           <div class="pie-chart" id="pieChart"></div>

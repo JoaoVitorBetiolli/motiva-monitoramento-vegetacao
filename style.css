@@ -410,3 +410,15 @@ h1 {
   color: #A6A0C0;
   margin-top: 2px;
 }
+
+/* Nível médio de risco (atenção) */
+.stat-card.atencao { border-color: #F2C94C; }
+.stat-card.atencao .stat-number { color: #F2C94C; }
+
+.verdict.atencao {
+  background-color: #3A331A;
+  color: #F2C94C;
+  border: 1px solid #F2C94C;
+}
+
+.history-verdict.atencao { color: #F2C94C; }

@@ -8,10 +8,10 @@ const timestamp = document.getElementById('timestamp');
 
 const statTotal = document.getElementById('statTotal');
 const statCorte = document.getElementById('statCorte');
+const statAtencao = document.getElementById('statAtencao');
 const statSemCorte = document.getElementById('statSemCorte');
 const pieChart = document.getElementById('pieChart');
 const historyList = document.getElementById('historyList');
-const emptyHistory = document.getElementById('emptyHistory');
 
 let base64Image = null;
 let historico = JSON.parse(localStorage.getItem('historicoAnalises') || '[]');
@@ -57,21 +57,22 @@ analyzeBtn.addEventListener('click', async function () {
 
 async function analisarImagem(imagemBase64) {
   const prompt = `
-Você é um sistema de análise de vegetação em rodovias.
+Você é um sistema de análise preventiva de vegetação em rodovias.
 Analise a imagem enviada e responda SOMENTE em JSON válido, sem texto adicional, seguindo exatamente este formato:
 
 {
+  "nivelRisco": "baixo" ou "medio" ou "alto",
   "precisaCorte": true ou false,
   "alertas": ["alerta 1", "alerta 2"],
   "justificativa": "explicação curta do motivo da decisão"
 }
 
-Critérios para considerar que precisa de corte:
-- Vegetação alta o suficiente para obstruir placas de sinalização
-- Vegetação invadindo o acostamento ou reduzindo a visibilidade da pista
-- Densidade de vegetação que representa risco à segurança viária
+Critérios de classificação:
+- "alto": vegetação já obstrui placas de sinalização, invade o acostamento/pista, ou representa risco imediato à segurança viária. Nesse caso, "precisaCorte" deve ser true.
+- "medio": vegetação está crescendo e se aproximando de um ponto crítico (ex: perto de tampar uma placa, mas ainda não tampa), mas ainda não representa risco imediato. Recomenda-se monitorar o trecho com mais frequência. "precisaCorte" deve ser false, mas o alerta deve indicar que o trecho precisa de acompanhamento.
+- "baixo": vegetação está baixa, bem aparada, sem nenhum risco visível. "precisaCorte" deve ser false e não é necessário nenhum alerta.
 
-Se não houver nenhum desses problemas, retorne "precisaCorte": false e "alertas": [].
+Se não houver problemas, retorne "alertas": [].
 `;
 
   const response = await fetch(
@@ -108,14 +109,16 @@ Se não houver nenhum desses problemas, retorne "precisaCorte": false e "alertas
 }
 
 function exibirResultado(resposta) {
-  const { precisaCorte, alertas, justificativa } = resposta;
+  const { nivelRisco, alertas, justificativa } = resposta;
 
   let html = '';
 
-  if (precisaCorte) {
+  if (nivelRisco === 'alto') {
     html += `<div class="verdict sim">🚨 Precisa de corte</div>`;
+  } else if (nivelRisco === 'medio') {
+    html += `<div class="verdict atencao">⚠️ Em atenção — monitorar</div>`;
   } else {
-    html += `<div class="verdict nao">✅ Não precisa de corte</div>`;
+    html += `<div class="verdict nao">✅ Sem risco</div>`;
   }
 
   if (alertas && alertas.length > 0) {
@@ -132,51 +135,92 @@ function exibirResultado(resposta) {
 }
 
 function salvarNoHistorico(resposta) {
-  const agora = new Date();
-  const registro = {
-    thumbnail: preview.src,
-    precisaCorte: resposta.precisaCorte,
-    horario: `${agora.toLocaleDateString('pt-BR')} às ${agora.toLocaleTimeString('pt-BR')}`
+  gerarThumbnail(preview.src, function (thumbnailPequena) {
+    const agora = new Date();
+    const registro = {
+      thumbnail: thumbnailPequena,
+      nivelRisco: resposta.nivelRisco,
+      horario: `${agora.toLocaleDateString('pt-BR')} às ${agora.toLocaleTimeString('pt-BR')}`
+    };
+
+    historico.unshift(registro);
+
+    // Mantém no máximo 20 registros no histórico, pra não estourar o localStorage
+    if (historico.length > 20) {
+      historico = historico.slice(0, 20);
+    }
+
+    try {
+      localStorage.setItem('historicoAnalises', JSON.stringify(historico));
+    } catch (erro) {
+      console.error('Erro ao salvar histórico:', erro);
+    }
+
+    renderAnalytics();
+  });
+}
+
+function gerarThumbnail(base64Original, callback) {
+  const img = new Image();
+  img.onload = function () {
+    const canvas = document.createElement('canvas');
+    const tamanho = 80; // thumbnail de 80x80 pixels
+    canvas.width = tamanho;
+    canvas.height = tamanho;
+
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0, tamanho, tamanho);
+
+    const thumbnailComprimido = canvas.toDataURL('image/jpeg', 0.6); // qualidade 60%
+    callback(thumbnailComprimido);
   };
-
-  historico.unshift(registro); // adiciona no início (mais recente primeiro)
-  localStorage.setItem('historicoAnalises', JSON.stringify(historico));
-
-  renderAnalytics();
+  img.src = base64Original;
 }
 
 function renderAnalytics() {
   const total = historico.length;
-  const comCorte = historico.filter(h => h.precisaCorte).length;
-  const semCorte = total - comCorte;
+  const alto = historico.filter(h => h.nivelRisco === 'alto').length;
+  const medio = historico.filter(h => h.nivelRisco === 'medio').length;
+  const baixo = total - alto - medio;
 
   statTotal.textContent = total;
-  statCorte.textContent = comCorte;
-  statSemCorte.textContent = semCorte;
+  statCorte.textContent = alto;
+  statAtencao.textContent = medio;
+  statSemCorte.textContent = baixo;
 
-  // Gráfico de pizza (conic-gradient)
   if (total > 0) {
-    const percentualCorte = (comCorte / total) * 360;
-    pieChart.style.background = `conic-gradient(#FF6B6B 0deg ${percentualCorte}deg, #6FE0A8 ${percentualCorte}deg 360deg)`;
+    const fatiaAlto = (alto / total) * 360;
+    const fatiaMedio = (medio / total) * 360;
+    pieChart.style.background = `conic-gradient(
+      #FF6B6B 0deg ${fatiaAlto}deg,
+      #F2C94C ${fatiaAlto}deg ${fatiaAlto + fatiaMedio}deg,
+      #6FE0A8 ${fatiaAlto + fatiaMedio}deg 360deg
+    )`;
   } else {
     pieChart.style.background = `conic-gradient(#524A6B 0deg 360deg)`;
   }
 
-  // Lista de histórico
   if (total === 0) {
     historyList.innerHTML = '<p class="empty-history">Nenhuma captura registrada ainda.</p>';
     return;
   }
 
-  historyList.innerHTML = historico.map(item => `
-    <div class="history-item">
-      <img class="history-thumb" src="${item.thumbnail}" alt="Miniatura">
-      <div class="history-info">
-        <div class="history-verdict ${item.precisaCorte ? 'sim' : 'nao'}">
-          ${item.precisaCorte ? '🚨 Precisa de corte' : '✅ Não precisa de corte'}
+  const labels = {
+    alto: { texto: '🚨 Precisa de corte', classe: 'sim' },
+    medio: { texto: '⚠️ Em atenção', classe: 'atencao' },
+    baixo: { texto: '✅ Sem risco', classe: 'nao' }
+  };
+
+  historyList.innerHTML = historico.map(item => {
+    const label = labels[item.nivelRisco] || labels.baixo;
+    return `
+      <div class="history-item">
+        <img class="history-thumb" src="${item.thumbnail}" alt="Miniatura">
+        <div class="history-info">
+          <div class="history-verdict ${label.classe}">${label.texto}</div>
+          <div class="history-time">${item.horario}</div>
         </div>
-        <div class="history-time">${item.horario}</div>
       </div>
-    </div>
-  `).join('');
+    `;
+  }).join('');
 }
