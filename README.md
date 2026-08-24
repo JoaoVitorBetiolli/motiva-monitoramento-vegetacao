@@ -14,7 +14,7 @@ Hoje, o controle de vegetação em rodovias é feito por cronogramas fixos de ma
 
 **Entrada:** imagem capturada por um sensor simulado na rodovia
 **Processamento:** a imagem é enviada para um modelo de IA com visão computacional, que avalia critérios como altura da vegetação, obstrução de sinalização e invasão do acostamento
-**Saída:** veredito (precisa ou não de corte), alertas específicos e justificativa, além de um painel analítico com histórico e estatísticas das capturas
+**Saída:** classificação de risco em três níveis (baixo, médio/atenção, alto/corte urgente), com alertas específicos e justificativa, além de um painel analítico com histórico e estatísticas das capturas
 
 ## Tecnologias utilizadas
 
