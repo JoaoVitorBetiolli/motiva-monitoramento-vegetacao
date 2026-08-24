@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Monitoramento de Vegetação - Motiva</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <header class="topbar">
+    <span class="brand">Grupo 41</span>
+    <span class="brand-divider">|</span>
+    <span class="brand-module">monitoramento de vegetação</span>
+  </header>
+
+   <main>
+    <h1>Central de monitoramento de trechos</h1>
+    <p class="subtitle">Imagens capturadas automaticamente pelos sensores da rodovia</p>
+
+    <div class="dashboard-grid">
+
+      <div class="card">
+        <div class="sensor-info">
+          <div class="sensor-dot"></div>
+          <div>
+            <strong>Sensor 03</strong> — Km 42, Rodovia SP-270 Oeste
+            <div class="sensor-status" id="sensorStatus">Aguardando captura</div>
+          </div>
+        </div>
+
+        <div class="camera-frame" id="cameraFrame">
+          <img id="preview" src="" alt="Imagem capturada pelo sensor">
+          <span class="placeholder" id="placeholder">Nenhuma imagem recebida ainda</span>
+          <span class="corner tl"></span>
+          <span class="corner tr"></span>
+          <span class="corner bl"></span>
+          <span class="corner br"></span>
+        </div>
+
+        <div class="timestamp" id="timestamp"></div>
+
+        <label id="upload-label" for="imageInput">
+          <span id="upload-text">📡 Simular nova captura</span>
+        </label>
+        <input type="file" id="imageInput" accept="image/*">
+
+        <button id="analyzeBtn">Analisar imagem recebida</button>
+
+        <div id="result"></div>
+      </div>
+
+      <section class="analytics">
+        <h2>Painel analítico</h2>
+
+        <div class="stats-row">
+          <div class="stat-card">
+            <span class="stat-number" id="statTotal">0</span>
+            <span class="stat-label">Análises</span>
+          </div>
+          <div class="stat-card sim">
+            <span class="stat-number" id="statCorte">0</span>
+            <span class="stat-label">Precisam corte</span>
+          </div>
+          <div class="stat-card nao">
+            <span class="stat-number" id="statSemCorte">0</span>
+            <span class="stat-label">Sem necessidade</span>
+          </div>
+        </div>
+
+        <div class="chart-row" id="chartRow">
+          <div class="pie-chart" id="pieChart"></div>
+          <div class="chart-legend">
+            <div><span class="legend-dot sim"></span> Precisa de corte</div>
+            <div><span class="legend-dot nao"></span> Não precisa de corte</div>
+          </div>
+        </div>
+
+        <h3>Histórico de capturas</h3>
+        <div id="historyList" class="history-list">
+          <p class="empty-history" id="emptyHistory">Nenhuma captura registrada ainda.</p>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <script src="config.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
