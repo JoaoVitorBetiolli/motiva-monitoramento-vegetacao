@@ -347,6 +347,7 @@ h1 {
 }
 
 .legend-dot.sim { background-color: #FF6B6B; }
+.legend-dot.atencao { background-color: #F2C94C;}
 .legend-dot.nao { background-color: #6FE0A8; }
 
 /* History list */
